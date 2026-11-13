@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const G = window.ChoreGame, app = document.querySelector('#app'), key = 'pcp-dirty-dishes-v2';
+  const G = window.ChoreGame, app = document.querySelector('#app'), key = 'pcp-dirty-dishes-v3';
   const teacher = new URLSearchParams(location.search).get('teacher') === '1';
   const scenes = [
     ['🍽️','The dishes have started forming their own civilization.','The sink is full. Your evening is still yours. For now.'],
