@@ -1,20 +1,20 @@
 (function (root) {
   'use strict';
-  const strategies = ['reciprocal', 'contributor', 'relaxer', 'unpredictable'];
+  const strategies = ['reciprocal', 'random-opening', 'unpredictable', 'two-tats'];
   function payoff(you, partner) {
     if (!['C','D'].includes(you) || !['C','D'].includes(partner)) throw new Error('Invalid choice');
     return you === 'C' ? (partner === 'C' ? [3,3] : [0,5]) : (partner === 'C' ? [5,0] : [1,1]);
   }
   function partnerChoice(strategy, history, random = Math.random) {
-    if (strategy === 'contributor') return 'C';
-    if (strategy === 'relaxer') return 'D';
     if (strategy === 'unpredictable') return random() < .5 ? 'C' : 'D';
     if (strategy === 'reciprocal') return history.length ? history[history.length - 1].you : 'C';
+    if (strategy === 'random-opening') return history.length ? history[history.length - 1].you : (random() < .5 ? 'C' : 'D');
+    if (strategy === 'two-tats') return history.length >= 2 && history[history.length - 1].you === 'D' && history[history.length - 2].you === 'D' ? 'D' : 'C';
     throw new Error('Invalid strategy');
   }
   function createGame(options = {}, random = Math.random) {
     const strategy = strategies.includes(options.strategy) ? options.strategy : strategies[Math.floor(random() * strategies.length)];
-    const game = {version:1, strategy, limit:Number.isInteger(options.rounds) && options.rounds >= 4 && options.rounds <= 20 ? options.rounds : 8 + Math.floor(random() * 3), avatar:options.avatar || '🌷', history:[], phase:'choice', response:null, reason:''};
+    const game = {version:2, strategy, limit:Number.isInteger(options.rounds) && options.rounds >= 4 && options.rounds <= 20 ? options.rounds : 8 + Math.floor(random() * 3), avatar:options.avatar || '🌷', history:[], phase:'choice', response:null, reason:''};
     game.pending = partnerChoice(strategy, game.history, random);
     return game;
   }
@@ -36,7 +36,7 @@
   }
   function totals(game) { return game.history.reduce((a,r) => ({you:a.you+r.yourPoints, partner:a.partner+r.partnerPoints, yourChores:a.yourChores+(r.you==='C'), partnerChores:a.partnerChores+(r.partner==='C')}), {you:0,partner:0,yourChores:0,partnerChores:0}); }
   function valid(game) {
-    if (!game || game.version !== 1 || !strategies.includes(game.strategy) || !Number.isInteger(game.limit) || game.limit < 4 || game.limit > 20 || !Array.isArray(game.history) || game.history.length > game.limit || !['choice','result','twist','done'].includes(game.phase)) return false;
+    if (!game || game.version !== 2 || !strategies.includes(game.strategy) || !Number.isInteger(game.limit) || game.limit < 1 || game.limit > 20 || !Array.isArray(game.history) || game.history.length > game.limit || !['choice','result','twist','done'].includes(game.phase)) return false;
     if (game.phase === 'choice' && (game.history.length >= game.limit || !['C','D'].includes(game.pending))) return false;
     if (game.phase === 'result' && !game.history.length) return false;
     if (['twist','done'].includes(game.phase) && game.history.length !== game.limit) return false;
